@@ -1,31 +1,29 @@
-module ula32(input logic[3:0] A,B,
-	     input logic[1:0] F,
-	     output logic[3:0]Y,
-	     output logic Zero, Overflow, Carry, cout, Neg);
-	logic [3:0] S, Bout; 
-	assign Bout = F[0] ? ~B : B;          //Se bit 2 de F for 1, recebe NB, inverte B caso SubtraÇão
-	assign {cout,S} = A + Bout + F[0];               //Complemento de 2, o que sobra da soma fica armazenada em cout
-	
-	assign Bout = F[0] ? ~B : B;          //Se bit 2 de F for 1, recebe NB, inverte B caso SubtraÇão
-	assign {cout,S} = A + Bout + F[0];               //Complemento de 2, o que sobra da soma fica armazenada em cout
+module ula_32(input logic [31:0] a,b,
+	      input logic [1:0] ALUControl,
+	      output logic [31:0] Result,
+	      output logic [3:0] ALUFlags);
 
-	assign Carry = cout;
+logic		neg, zero, carry, overflow;
+logic [31:0] condinvb;
+logic [32:0] sum;
 
-	always_comb
-		case(F)
-			2'b00: Y<=S;              // SOMA
-			2'b01: Y<=S;              //SUB
-			2'b10: Y<=A&B;             //AND
-			2'b11: Y<=A|B;            //OR
-		endcase
-	
-	assign Zero = (Y == 4'b0); //Flag de Zero, sempre que a condição for verdade, Zero=1
+assign condinvb = ALUControl[0] ? ~b:b;
+assign sum = a + condinvb + ALUControl[0];
 
-	always_comb
-	case(F)	
- 	2'b00: Overflow <= A[3] & B[3] & ~S[3] | ~A[3] & ~B[3] & S[3];
- 	2'b01: Overflow <= ~A[3] & B[3] & S[3] | A[3] & ~B[3] & ~S[3];
- 	default: Overflow <= 1'b0;	
+always_comb
+	casex (ALUControl[1:0])
+		2'b0?: Result = sum;
+		2'b10: Result = a & b;
+		2'b11: Result = a | b;
 	endcase
-  
-  endmodule
+
+assign neg	= Result[31];
+assign zero     = (Result == 32'b0);
+assign carry    = (ALUControl[1] == 1'b0) & sum[32];
+assign overflow = (ALUControl[1] == 1'b0) &
+		  ~(a[31] ^ b[31] ^ ALUControl[0]) &
+		  (a[31] ^ sum[31]);	
+
+assign ALUFlags	   = {neg, zero, carry, overflow}; 
+
+endmodule 
