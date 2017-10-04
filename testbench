@@ -1,0 +1,15 @@
+module tb_ula;
+
+logic [31:0] a;
+logic [31:0]b;
+logic [1:0] ALUControl;
+logic [31:0] Result;
+logic [3:0] ALUFlags;
+logic clk;
+logic [31:0] result_expected;
+logic [3:0] flags_expected;
+logic [101:0] testvectors[10000:0];
+logic [127:0] vectornum, errors;
+
+endmodule
+
